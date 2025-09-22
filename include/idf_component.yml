@@ -1,0 +1,11 @@
+dependencies:
+  sepfy/srtp: ^2.0.4
+  sepfy/usrsctp: ^0.9.5
+
+  
+name: IoTSdk
+description: This SDK lets you join a meeting, publish your audio, and subscribe to others audio. Its built on the same infrastructure used by VideoSDK.
+
+license: MIT
+url: 
+version: 0.0.1
