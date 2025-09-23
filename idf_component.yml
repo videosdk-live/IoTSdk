@@ -1,11 +1,3 @@
-version: "0.0.2"
-dependencies:
-  mdns: '*'
-  sepfy/srtp: ^2.3.0
-  espressif/esp_audio_codec: ~2.3.0
-  espressif/esp_codec_dev: ~1.3.4
-  espressif/esp_audio_effects: ~1.1.0
+version: "0.0.1"
 description: "IoTSdk is a lightweight ESP-IDF component that enables ESP32-based IoT devices to participate in real-time meetings through the VideoSDK platform. The component provides seamless integration for joining meetings, publishing streams, and subscribing to audio from other participants."
-
 license: "Custom"
-url: https://github.com/videosdk-live/iot-sdk
