@@ -1,6 +1,7 @@
 
 idf_component_register(
-    INCLUDE_DIRS "include"
+    INCLUDE_DIRS "include" 
+    REQUIRES  mbedtls  json   esp_netif   fatfs   vfs   esp_common  esp_timer   esp_lcd   nvs_flash
 )
 
 if(CONFIG_ESP32_S3_KORVO_2_V3_0_BOARD)
