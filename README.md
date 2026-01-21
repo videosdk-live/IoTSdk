@@ -92,8 +92,7 @@ idf.py menuconfig
 
           d. Adjust the flash size inside Serial flasher config 
              (because some boards have limited flash memory)
-                | ——> flash size: 2MB (esp32s3 XIAO sense)
-                | ——> flash size: 4MB (esp32s3 qorvo2 v3.1)
+                | ——> flash size: 4MB 
           And click S to save and again enter
 
           e. Inside the Set Microcontroller : 
