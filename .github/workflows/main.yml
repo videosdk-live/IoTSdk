@@ -1,19 +1,45 @@
 name: ReleaseNotice
+
 on:
   release:
     types: [published]
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      # To check the github context
-      - name: Dump Github context
+      # 1️⃣ Dump full GitHub context (useful for debugging)
+      - name: Dump GitHub Context
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
-        run: echo "$GITHUB_CONTEXT"
+        run: |
+          echo "================ FULL GITHUB CONTEXT ================"
+          echo "$GITHUB_CONTEXT"
+          echo "====================================================="
+
+      # 2️⃣ Log event type
+      - name: Check Event Type
+        run: |
+          echo "Event Name: ${{ github.event_name }}"
+
+      # 3️⃣ Dump release-specific values (only if triggered by release)
+      - name: Dump Release Info
+        if: github.event_name == 'release'
+        run: |
+          echo "================ RELEASE INFO ================"
+          echo "Tag Name      : ${{ github.event.release.tag_name }}"
+          echo "Release Name  : ${{ github.event.release.name }}"
+          echo "Author        : ${{ github.actor }}"
+          echo "Release URL   : ${{ github.event.release.html_url }}"
+          echo "Release Body  :"
+          echo "${{ github.event.release.body }}"
+          echo "=============================================="
+
+      # 4️⃣ Slack notification (only on success & release event)
       - name: Slack Notification on SUCCESS
-        if: success()
+        if: success() && github.event_name == 'release'
         uses: tokorom/action-slack-incoming-webhook@main
         env:
           INCOMING_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -25,35 +51,28 @@ jobs:
                 "type": "header",
                 "text": {
                   "type": "plain_text",
-                  "text": "IoT SDK with ${{ github.event.release.tag_name}} is published!"
+                  "text": "IoT SDK ${{ github.event.release.tag_name }} Published!"
                 }
               },
               {
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "*Author:*\n${{ github.actor }}"
-                }
-              },
-               {
-                "type": "section",
-                "text": {
-                  "type": "mrkdwn",
-                  "text": "*Release Information:*"
+                  "text": "*Author:* ${{ github.actor }}"
                 }
               },
               {
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": ${{ toJSON(github.event.release.body) }}
+                  "text": "*Release Notes:* \n${{ github.event.release.body }}"
                 }
               },
               {
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "${{ github.event.release.html_url }}"
+                  "text": "*Release URL:* \n${{ github.event.release.html_url }}"
                 }
               }
             ]
