@@ -1,0 +1,29 @@
+menu "VideoSDK Configuration"
+
+config VIDEOSDK_TOKEN
+    string "Auth token (JWT)"
+    default ""
+    help
+        Your VideoSDK JWT token from https://app.videosdk.live.
+        Required to join a meeting. Do NOT commit a real token to a
+        public repository -- set it here via 'idf.py menuconfig' (it is
+        stored in sdkconfig, not in source).
+
+config VIDEOSDK_MEETING_ID
+    string "Meeting / room ID"
+    default ""
+    help
+        The meeting (room) ID to join, e.g. "abcd-efgh-ijkl". Create one
+        from your VideoSDK dashboard or the create_meeting() API.
+
+config SPEAKER_VOLUME
+    int "Speaker output volume (0-100)"
+    range 0 100
+    default 100
+    depends on ESP32_S3_KORVO_2_V3_0_BOARD
+    help
+        Initial ES8311 speaker volume (percent), Korvo-2 only. NOTE: with the
+        prebuilt library this value is fixed at library build time -- to change
+        volume in your app, call the runtime setSpeakerVolume() API instead.
+
+endmenu

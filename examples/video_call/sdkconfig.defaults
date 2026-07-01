@@ -1,0 +1,97 @@
+# This file was generated using idf.py save-defconfig. It can be edited manually.
+# Espressif IoT Development Framework (ESP-IDF) 5.2.2 Project Minimal Configuration
+
+CONFIG_IDF_TARGET="esp32s3"
+CONFIG_APP_RETRIEVE_LEN_ELF_SHA=16
+# Korvo-2 V3.0 has 16 MB flash; the custom partition table puts a 4 MB factory
+# app at 0x10000, which does not fit in 4 MB. (Matches the Rust reference board.)
+CONFIG_ESPTOOLPY_FLASHSIZE_8MB=y
+CONFIG_ESPTOOLPY_FLASHSIZE="8MB"
+# QIO (4-line) flash reads instead of the default DIO (2-line): ~2x faster XIP
+# execution of code that runs from flash. Matches the Rust release build.
+CONFIG_ESPTOOLPY_FLASHMODE_QIO=y
+CONFIG_PARTITION_TABLE_CUSTOM=y
+# Target board (compile-time; the code branches on this with #if, see audio.c /
+# video.c). Korvo-2 = full duplex A/V (ES7210 mic, ES8311 speaker, OV2640 camera,
+# ST7789 LCD). For the Seeed XIAO ESP32-S3 set CONFIG_ESP32S3_XIAO=y instead: it
+# is audio + video SEND only -- no speaker and no LCD, so startSubscribeAudio /
+# startSubscribeVideo return DEVICE_NOT_SUPPORTED there.
+CONFIG_EXAMPLE_CONNECT_IPV6=n
+CONFIG_ESP_PHY_REDUCE_TX_POWER=y
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_MODE_OCT=y
+# Run the octal PSRAM at 80 MHz (default for OCT is 40 MHz): ~2x PSRAM bandwidth.
+# WiFi/lwIP buffers, the JPEG decode in/out buffers, and the av_render FIFOs all
+# live in PSRAM, so this speeds the whole network + video path. Matches the Rust
+# build and confirmed stable on this board (no reset).
+CONFIG_SPIRAM_SPEED_80M=y
+CONFIG_SPIRAM_USE_MALLOC=y
+# Push WiFi/lwIP buffers into PSRAM so enough internal RAM stays free for the
+# protoo websocket task's 20 KB stack on the Korvo board (heavier codec init
+# runs before connect). Without this, esp_websocket_client_start() fails with
+# "Error create websocket task".
+CONFIG_SPIRAM_TRY_ALLOCATE_WIFI_LWIP=y
+# Allow task stacks in PSRAM. media_lib (av_render's Adec/ARender decode+render
+# threads) only places its thread stacks in external RAM when this is set
+# (see media_lib_os_freertos.c); otherwise ~48 KB of stacks sit in internal RAM
+# and, with the receive pipeline + two peer connections active, starve LWIP
+# ("sendto: Not enough space" -> publish transport fails -> reset).
+CONFIG_SPIRAM_ALLOW_STACK_EXTERNAL_MEMORY=y
+# Reserve DMA-capable INTERNAL RAM that PSRAM-malloc must not hand out. The WiFi
+# driver needs internal (DMA-capable) memory to build each outgoing packet; with
+# WiFi/lwIP buffers pushed to PSRAM and the JPEG video stream bursting ~4 UDP
+# packets per frame at 20 fps, internal RAM otherwise gets starved and sendto()
+# fails with "Not enough space" (which also kills the recv DTLS handshake). The
+# proven Rust korvo2_audio config reserves the same 16 KB. ALWAYSINTERNAL keeps
+# small allocations internal so they don't fragment PSRAM.
+CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL=1024
+CONFIG_SPIRAM_MALLOC_RESERVE_INTERNAL=16384
+CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240=y
+# Build optimized for size (-Os) instead of the IDF default debug (-Og). -Og does
+# no inlining/loop optimization, making CPU-bound code (JPEG decode wrapper,
+# av_render, the SDK, lwIP glue) ~2-3x slower -- the main reason this C build ran
+# far slower than the Rust release build, which uses -Os over the same libpeer C.
+CONFIG_COMPILER_OPTIMIZATION_SIZE=y
+# 1 ms scheduler tick instead of the default 10 ms (HZ=100): finer time-slicing
+# between the audio/network/video/display tasks (much less jitter), and 1 ms loop
+# delays (pdMS_TO_TICKS(1)) actually yield instead of rounding to 0. Matches Rust.
+CONFIG_FREERTOS_HZ=1000
+# Bumped from the 2 KB default: the stack high-water-mark check showed the system
+# event task running with only ~384 B free -- the closest to overflow of any task.
+CONFIG_ESP_SYSTEM_EVENT_TASK_STACK_SIZE=3072
+# startPublishAudio runs the protoo signaling handshake (cJSON parse/build, TLS) on
+# the main task. The high-water-mark check showed it peaks at only ~4.4 KB through
+# the full handshake, so 10 KB leaves a comfortable margin (was 16 KB).
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=10240
+CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU1=n
+CONFIG_ESP_IPC_TASK_STACK_SIZE=2048
+CONFIG_ESP_WIFI_STATIC_RX_BUFFER_NUM=16
+CONFIG_ESP_WIFI_DYNAMIC_RX_BUFFER_NUM=48
+# Match the proven Rust korvo2_audio WiFi TX config. Under
+# SPIRAM_TRY_ALLOCATE_WIFI_LWIP the Kconfig forces static TX buffers anyway
+# (ESP_WIFI_DYNAMIC_TX_BUFFER is ignored), and the PSRAM cache-TX path
+# (CACHE_TX_BUFFER) added churn under the JPEG video bursts -> sendto ENOMEM.
+# Internal DMA RAM for TX is instead guaranteed by SPIRAM_MALLOC_RESERVE_INTERNAL.
+CONFIG_ESP_WIFI_DYNAMIC_TX_BUFFER_NUM=32
+CONFIG_LWIP_IPV6_AUTOCONFIG=y
+CONFIG_LWIP_IPV6_DHCP6=y
+CONFIG_LWIP_TCP_SND_BUF_DEFAULT=5744
+CONFIG_LWIP_TCP_WND_DEFAULT=5744
+# Deeper UDP receive mailbox so inbound DTLS/SCTP (and recv audio) isn't dropped
+# while the video stream keeps the network stack busy (matches the Rust config).
+CONFIG_LWIP_UDP_RECVMBOX_SIZE=64
+CONFIG_MBEDTLS_EXTERNAL_MEM_ALLOC=y
+CONFIG_MBEDTLS_SSL_PROTO_DTLS=y
+# Certificate bundle for verifying the wss:// signaling endpoint (esp_crt_bundle_attach).
+CONFIG_MBEDTLS_CERTIFICATE_BUNDLE=y
+CONFIG_MBEDTLS_CERTIFICATE_BUNDLE_DEFAULT_FULL=y
+CONFIG_PTHREAD_TASK_STACK_SIZE_DEFAULT=8192
+# Camera (esp32-camera, hardware JPEG, frame buffers in PSRAM) -- the video SEND
+# path, used on both boards (Korvo-2 FPC OV2640, or the XIAO ESP32-S3 Sense
+# OV2640). Keep the common sensors enabled so the driver auto-detects whatever is
+# fitted. QVGA JPEG keeps the DVP DMA bounce buffer (internal RAM) small enough to
+# leave room for the audio/LWIP path.
+CONFIG_OV2640_SUPPORT=y
+CONFIG_OV3660_SUPPORT=y
+CONFIG_OV5640_SUPPORT=y
+CONFIG_CAMERA_DMA_BUFFER_SIZE_MAX=32768
