@@ -1,4 +1,4 @@
-## v0.1.1
+## v0.2.2
 
 **Release Date**: 1st Jul 2026
 

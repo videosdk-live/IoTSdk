@@ -41,7 +41,7 @@ Declare the component in your project's `main/idf_component.yml`. Either referen
 
 ```yaml
 dependencies:
-  videosdk/iot-sdk: "*"   # or pin a specific version, e.g. "0.1.1"
+  videosdk/iot-sdk: "*"   # or pin a specific version, e.g. "0.2.2"
 ```
 
 ### 3. Add the required dependencies

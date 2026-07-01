@@ -8,6 +8,7 @@ idf_component_register(
         fatfs
         vfs
         esp_common
+        esp_hw_support
         esp_timer
         esp_lcd
         esp-tls
@@ -26,7 +27,7 @@ idf_component_register(
         espressif__esp_capture
         espressif__esp_video_codec
         espressif__esp_jpeg
-        espressif__esp32_camera
+        espressif__esp32-camera
         espressif__esp_websocket_client
         sepfy__srtp
         sepfy__usrsctp
@@ -50,8 +51,8 @@ endif()
 # transitive REQUIRES so CMake places its dependency archives AFTER the
 # prebuilt on the linker command line. Without this, `ld` (single-pass over
 # archives) sees undefined references to esp_capture_*, esp_audio_*,
-# esp_codec_dev_*, etc. when this component is loaded after its providers
-# (which is namespace-order dependent).
+# esp_codec_dev_*, esp_ptr_executable (esp_hw_support), etc. when this component
+# is loaded after its providers (which is namespace-order dependent).
 add_prebuilt_library(${prebuilt_lib_name} "${prebuilt_lib_path}"
     REQUIRES
         mbedtls
@@ -60,6 +61,7 @@ add_prebuilt_library(${prebuilt_lib_name} "${prebuilt_lib_path}"
         fatfs
         vfs
         esp_common
+        esp_hw_support
         esp_timer
         esp_lcd
         esp-tls
@@ -76,7 +78,7 @@ add_prebuilt_library(${prebuilt_lib_name} "${prebuilt_lib_path}"
         espressif__esp_capture
         espressif__esp_video_codec
         espressif__esp_jpeg
-        espressif__esp32_camera
+        espressif__esp32-camera
         espressif__esp_websocket_client
         sepfy__srtp
         sepfy__usrsctp
