@@ -1,9 +1,16 @@
+## v0.2.3
+
+**Release Date**: 2nd Jul 2026
+
+- Fix: Remove duplicate board / VideoSDK Kconfig from the bundled examples — the menus now come solely from the component's `Kconfig.projbuild` (building an example no longer shows two `SET Microcontroller` / `VideoSDK Configuration` menus or a duplicate-`choice` warning).
+- Fix: Example manifests referenced `videosdk/IoTSdk`; corrected to the registry name `videosdk/iot-sdk` and pinned `^0.2.3`.
+- Docs: Drop references to the not-yet-public connection-state / data-message handlers from the header usage contract.
+
 ## v0.2.2
 
 **Release Date**: 1st Jul 2026
 
 - Feature: Full audio **and video** API — publish/subscribe video (hardware JPEG over the data channel) in addition to audio, plus runtime speaker volume control (`setSpeakerVolume`). *Video and audio subscribe are Korvo-2 only; the XIAO is send-only.*
-- Feature: Signaling connection-state notifications (`setConnectionStateHandler`).
 - Update: `init_config_t` gains a `videoCodec` field (`VIDEO_CODEC_NONE` / `VIDEO_CODEC_JPEG`); `startSubscribeAudio()` is now no-arg.
 - Update: Audio is **PCMA (G.711 A-law) only** — `audio_codec_t` now exposes just `AUDIO_CODEC_PCMA` (PCMU / Opus removed from the public API).
 - Update: Receive path hardened — incoming data is routed by SCTP stream id, and reliability/leak fixes in the connection lifecycle.

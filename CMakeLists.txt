@@ -24,7 +24,6 @@ idf_component_register(
         espressif__esp_audio_codec
         espressif__esp_codec_dev
         espressif__esp_audio_effects
-        espressif__esp_capture
         espressif__esp_video_codec
         espressif__esp_jpeg
         espressif__esp32-camera
@@ -75,7 +74,6 @@ add_prebuilt_library(${prebuilt_lib_name} "${prebuilt_lib_path}"
         espressif__esp_audio_codec
         espressif__esp_codec_dev
         espressif__esp_audio_effects
-        espressif__esp_capture
         espressif__esp_video_codec
         espressif__esp_jpeg
         espressif__esp32-camera

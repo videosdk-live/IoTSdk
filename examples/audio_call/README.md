@@ -12,11 +12,11 @@ The session is initialized with `videoCodec = VIDEO_CODEC_NONE`.
 ## Create the project
 
 ```bash
-idf.py create-project-from-example "videosdk/iot-sdk=*:audio_call"
+idf.py create-project-from-example "videosdk/iot-sdk=0.2.3:audio_call"
 ```
 
-(Within this repo the example already builds against the local component via
-`override_path` in `main/idf_component.yml`.)
+(This example pulls the published component pinned in `main/idf_component.yml`:
+`videosdk/iot-sdk: "^0.2.3"`.)
 
 ## Configure
 

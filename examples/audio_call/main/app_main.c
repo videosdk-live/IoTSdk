@@ -70,8 +70,18 @@ void app_main(void)
   // Publish the microphone into the meeting, and play back remote audio.
   // startSubscribeAudio drives the ES8311 speaker and is Korvo-2 only -- on the
   // XIAO (no speaker) it returns DEVICE_NOT_SUPPORTED, which is fine.
-  startPublishAudio(""); // empty publisherId => a random one is generated
-  startSubscribeAudio();
+
+  result_t result_publish = startPublishAudio(""); // empty publisherId => a random one is generated
+  printf("Result:%d\n", result_publish);
+  result_t result_subscribe = startSubscribeAudio();
+  printf("Result:%d\n", result_subscribe);
+
+  // Keep the session active for a defined duration (adjust as per your application use case)
+  vTaskDelay(pdMS_TO_TICKS(100000));
+
+  // Leave the meeting
+  result_t result_leave = leave();
+  printf("Result:%d\n", result_leave);
 
   while (1)
   {

@@ -10,27 +10,27 @@ extern "C" {
 #endif
 
 // ===========================================================================
-// VideoSDK IoT SDK -- usage contract
+// VideoSDK DataChannel SDK -- usage contract
 // ---------------------------------------------------------------------------
 // Call order (from a single task, e.g. app_main -- the API is NOT thread-safe;
 // do not call these concurrently from multiple tasks):
 //   1. init(&cfg)                     -- exactly once; validates + sets up board.
-//   2. (optional) setConnectionStateHandler -- register the callback before the
-//      start* calls so a mid-session drop is delivered.
-//   3. start{Publish,Subscribe}{Audio,Video}() -- in any combination/order. The
+//   2. start{Publish,Subscribe}{Audio,Video}() -- in any combination/order. The
 //      first publish OR subscribe call brings up its transport; later calls
 //      reuse it. Publish* and startSubscribeVideo are Korvo-2 only.
-//   4. leave()                        -- stops publish + subscribe (async).
+//   3. leave()                        -- stops publish + subscribe (async).
 //
-// Board selection is compile-time (idf.py menuconfig -> "VideoSDK IoT SDK"):
+// Board selection is compile-time (idf.py menuconfig -> "SET Microcontroller"):
 // Korvo-2 = full-duplex A/V; XIAO ESP32-S3 = audio+video SEND only.
 //
 // Memory ownership: create_meeting() returns a malloc'd room_id the caller must
 // free(). Config strings passed to init() are NOT copied -- keep them alive for
-// the whole session. Callbacks run on internal tasks; do not block in them.
+// the whole session.
 // ===========================================================================
 
-// enum for the supported audio codec. Only G.711 A-law (PCMA) is supported.
+// enum for the supported audio codec. Only G.711 A-law (PCMA) is offered today;
+// PCMU / Opus are kept (commented here and in audio.c) for future use -- to
+// re-enable one, uncomment its value here and the matching branches in audio.c.
 typedef enum {
   AUDIO_CODEC_PCMA = 0,  // G.711 A-law, 8 kHz mono, 160 B / 20 ms
 } audio_codec_t;
@@ -106,20 +106,14 @@ result_t startSubscribeVideo(void);
 result_t stopPublishAudio();
 // Subscribe Audio Stop
 result_t stopSubscribeAudio();
+
 // Set speaker playback volume at runtime, 0-100 (out-of-range values are
 // clamped). Seeded from CONFIG_SPEAKER_VOLUME (menuconfig); call this to
 // override. Korvo-2 only (the XIAO has no speaker).
 void setSpeakerVolume(int volume);
 
-// Handler for signaling connection-state changes. `connected == false` means the
-// protoo WebSocket dropped and the session is dead -- the app should stop/leave
-// and rejoin; `connected == true` fires when the signaling socket is up. Runs on
-// the signaling event task, so do not block. `user` is passed back verbatim.
-typedef void (*connection_state_cb_t)(bool connected, void* user);
-// Register (or clear, with NULL) the connection-state handler. Call after init(),
-// before startPublish*/startSubscribe*, so a mid-session drop is delivered.
-void setConnectionStateHandler(connection_state_cb_t cb, void* user);
-// leave method to stop the
+
+// leave method to stop the call and close all publish/subscribe streams
 result_t leave();
 
 #ifdef __cplusplus

@@ -1,11 +1,6 @@
 ## IDF Component Manager Manifest File
 dependencies:
-  # The IoT SDK itself. override_path uses the local component during development
-  # (this repo); when the example is instantiated from the registry, the override
-  # is ignored and the published version is fetched instead.
-  videosdk/iot-sdk:
-    version: "*"
-    override_path: "../../../"
+  videosdk/iot-sdk: "^0.2.3"
   idf:
     version: ">=5.4.0"
   mdns: "*"

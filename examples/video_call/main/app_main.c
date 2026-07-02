@@ -72,8 +72,18 @@ void app_main(void)
   // startPublishVideo works on both boards; startSubscribeVideo drives the
   // ST7789 LCD and is Korvo-2 only -- on the XIAO (no display) it returns
   // DEVICE_NOT_SUPPORTED, which is fine.
-  startPublishVideo();
-  startSubscribeVideo();
+
+  result_t result_publish = startPublishVideo();  // camera JPEG -> data channel
+  printf("Result:%d\n", result_publish);
+  result_t result_subscribe = startSubscribeVideo();
+  printf("Result:%d\n", result_subscribe);
+
+  // Keep the session active for a defined duration (adjust as per your application use case)
+  vTaskDelay(pdMS_TO_TICKS(100000));
+
+  // Leave the meeting
+  result_t result_leave = leave();
+  printf("Result:%d\n", result_leave);
 
   while (1)
   {
