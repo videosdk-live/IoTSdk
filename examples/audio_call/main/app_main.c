@@ -18,8 +18,8 @@
 #include "videosdk.h"
 
 static const char *TAG = "IOT-SDK-AUDIO";
-// Token and meeting ID come from menuconfig (VideoSDK Configuration), stored in
-// sdkconfig -- never hardcode a real token in source.
+// Set these under "VideoSDK Configuration" in menuconfig. They land in
+// sdkconfig, so a real token never has to sit in source.
 const char *token = CONFIG_VIDEOSDK_TOKEN;
 
 void app_main(void)
@@ -31,7 +31,14 @@ void app_main(void)
   ESP_LOGI(TAG, "[APP] Free memory: %d bytes", esp_get_free_heap_size());
   ESP_LOGI(TAG, "[APP] IDF version: %s", esp_get_idf_version());
 
-  esp_log_level_set("*", ESP_LOG_INFO);
+  // Log verbosity, chosen in menuconfig -> "VideoSDK Logging". Only the SDK's own
+  // tags move; ESP-IDF / registry components keep their levels. Call before
+  // init() so it covers the join.
+#if CONFIG_VIDEOSDK_LOG_MODE_DEBUG
+  videosdk_set_log_mode(VIDEOSDK_LOG_DEBUG);
+#else
+  videosdk_set_log_mode(VIDEOSDK_LOG_NORMAL);
+#endif
 
   ESP_ERROR_CHECK(nvs_flash_init());
   ESP_ERROR_CHECK(esp_netif_init());
@@ -51,11 +58,12 @@ void app_main(void)
     return;
   }
 
-  // Audio-only session: VIDEO_CODEC_NONE, no video start calls.
+  // Audio only, so no video codec and no video start calls.
   init_config_t init_cfg = {
       .meetingID = CONFIG_VIDEOSDK_MEETING_ID,
       .token = token,
-      .displayName = "ESP32-Audio",
+      .displayName = "ESP32S3-Audio", // user configuraable for display in the meeting
+      .participantId = deviceid,      
       .audioCodec = AUDIO_CODEC_PCMA,
       .videoCodec = VIDEO_CODEC_NONE,
   };
@@ -67,11 +75,9 @@ void app_main(void)
     return;
   }
 
-  // Publish the microphone into the meeting, and play back remote audio.
-  // startSubscribeAudio drives the ES8311 speaker and is Korvo-2 only -- on the
-  // XIAO (no speaker) it returns DEVICE_NOT_SUPPORTED, which is fine.
-
-  result_t result_publish = startPublishAudio(""); // empty publisherId => a random one is generated
+  // startSubscribeAudio needs the speaker, so on the XIAO it comes back with
+  // DEVICE_NOT_SUPPORTED. That's expected.
+  result_t result_publish = startPublishAudio();
   printf("Result:%d\n", result_publish);
   result_t result_subscribe = startSubscribeAudio();
   printf("Result:%d\n", result_subscribe);

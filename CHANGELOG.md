@@ -1,45 +1,65 @@
-## v0.2.3
+# Changelog
 
-**Release Date**: 2nd Jul 2026
+All notable changes to the `videosdk/iot-sdk` component.
 
-- Fix: Remove duplicate board / VideoSDK Kconfig from the bundled examples — the menus now come solely from the component's `Kconfig.projbuild` (building an example no longer shows two `SET Microcontroller` / `VideoSDK Configuration` menus or a duplicate-`choice` warning).
-- Fix: Example manifests referenced `videosdk/IoTSdk`; corrected to the registry name `videosdk/iot-sdk` and pinned `^0.2.3`.
-- Docs: Drop references to the not-yet-public connection-state / data-message handlers from the header usage contract.
+## v0.3.0
+
+**Release Date**: 11th Jul 2026
+
+- Breaking: `startPublishAudio()` no longer takes an argument. Set the device's id once in the new `init_config_t.participantId` field instead:
+
+  ```c
+  // before
+  startPublishAudio("my-device-id");
+
+  // now
+  init_config_t cfg = { ..., .participantId = "my-device-id" };
+  init(&cfg);
+  startPublishAudio();
+  ```
+
+  Leave `participantId` as `""` or `NULL` and you still get a random id, as before.
+- Breaking: `init_config_t` has a new `participantId` field. Rebuild your application against the new header.
+- Feature: Send and receive messages during a call. Open the channel with `startMessageChannel()`, send text or binary with `sendMessage()` (up to 60000 bytes per message), and close it with `stopMessageChannel()`. Register `setDataMessageHandler()` to receive what other participants send.
+- Feature: `setConnectionStateHandler()` reports when the connection comes up or drops, so your application can rejoin after a disconnect.
+- Feature: Audio can be sent as PCMU or Opus in addition to PCMA. Pick one with `init_config_t.audioCodec`.
+- Update: Two new result codes. `DATA_CHANNEL_NOT_STARTED` (3025) means `sendMessage()` was called before the channel was opened, and `DATA_CHANNEL_QUEUE_FULL` (3026) means messages are being queued faster than they can be sent.
+- Feature: Pick the log verbosity at runtime with `videosdk_set_log_mode()`. `VIDEOSDK_LOG_NORMAL` keeps the lifecycle, warning and error lines; `VIDEOSDK_LOG_DEBUG` adds the periodic heartbeats and diagnostics. Call it before `init()`.
+- Change: `sendMessage()` now accepts up to 24000 bytes per message, down from 60000.
+- Fix: Building a bundled example no longer shows the board and VideoSDK menus twice in `menuconfig`.
 
 ## v0.2.2
 
 **Release Date**: 1st Jul 2026
 
-- Feature: Full audio **and video** API — publish/subscribe video (hardware JPEG over the data channel) in addition to audio, plus runtime speaker volume control (`setSpeakerVolume`). *Video and audio subscribe are Korvo-2 only; the XIAO is send-only.*
-- Update: `init_config_t` gains a `videoCodec` field (`VIDEO_CODEC_NONE` / `VIDEO_CODEC_JPEG`); `startSubscribeAudio()` is now no-arg.
-- Update: Audio is **PCMA (G.711 A-law) only** — `audio_codec_t` now exposes just `AUDIO_CODEC_PCMA` (PCMU / Opus removed from the public API).
-- Update: Receive path hardened — incoming data is routed by SCTP stream id, and reliability/leak fixes in the connection lifecycle.
-- Update: Declare the additional runtime dependencies the A/V path needs (`esp_jpeg`, `esp32-camera`, `esp_websocket_client`, `sepfy/usrsctp`) in `idf_component.yml` and the CMake `REQUIRES`; bump the minimum ESP-IDF to `5.4`.
+- Breaking: `startSubscribeAudio()` no longer takes arguments.
+- Breaking: `audio_codec_t` temporarily offers only `AUDIO_CODEC_PCMA`. PCMU and Opus return in v0.3.0.
+- Feature: Video support. Send camera frames to the meeting, and on the Korvo-2 show remote video on the display. Choose the format with the new `init_config_t.videoCodec` field, either `VIDEO_CODEC_NONE` or `VIDEO_CODEC_JPEG`. Receiving video is Korvo-2 only.
+- Feature: `setSpeakerVolume()` changes playback volume while a call is running (Korvo-2 only).
+- Update: The component now pulls in everything the video path needs, so you do not have to add those dependencies yourself. The minimum ESP-IDF version is now 5.4.
+- Fix: More reliable receive path, and fewer leaks over long sessions.
 
 ## v0.0.4
 
 **Release Date**: 27th Apr 2026
 
-- Fix: Use `add_prebuilt_library` with explicit `REQUIRES` so CMake places dependency archives after the prebuilt `.a` on the linker command line. Previously, raw `target_link_libraries(... INTERFACE lib.a)` did not propagate transitive deps, and single-pass `ld` left `esp_capture_*` / `esp_audio_*` / `esp_codec_dev_*` symbols unresolved when the component happened to be loaded after its providers (alphabetical namespace ordering).
+- Fix: Resolved undefined-reference errors that could appear when linking the component into an application.
 
 ## v0.0.3
 
 **Release Date**: 27th Apr 2026
 
-- Fix: Declare runtime dependencies (`esp_audio_codec`, `esp_codec_dev`, `esp_audio_effects`, `esp_capture`, `esp_video_codec`, `sepfy/srtp`, `mdns`) in `idf_component.yml` so consumers no longer hit undefined-reference linker errors.
-- Fix: Add `REQUIRES` for IDF drivers (`esp_driver_i2c`, `esp_driver_i2s`, `esp_driver_gpio`, `sdmmc`, `mbedtls`, `esp_netif`, `esp_event`, `esp_wifi`, `nvs_flash`) needed by the prebuilt static libraries.
-- Update: Manifest enriched with `url`, `repository`, `issues`, `documentation`, `tags`, and `targets`.
+- Fix: The component now declares its own runtime dependencies, so adding it to a project no longer produces undefined-reference errors at link time.
+- Update: The manifest now carries the repository, issue tracker and documentation links, along with tags and the supported targets.
 
 ## v0.0.2
 
 **Release Date**: 20th Jan 2026
 
-- Update: Update IoT SDK static libraries for Korvo v2 platforms.
+- Update: Refreshed the prebuilt libraries for the ESP32-S3-Korvo-2.
 
 ## v0.0.1
 
 **Release Date**: 23rd Sep 2025
 
-- VideoSdk IoT SDK Initial release
-
- 
+- Initial release of the VideoSDK IoT SDK.

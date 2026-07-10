@@ -18,8 +18,8 @@
 #include "videosdk.h"
 
 static const char *TAG = "IOT-SDK-VIDEO";
-// Token and meeting ID come from menuconfig (VideoSDK Configuration), stored in
-// sdkconfig -- never hardcode a real token in source.
+// Set these under "VideoSDK Configuration" in menuconfig. They land in
+// sdkconfig, so a real token never has to sit in source.
 const char *token = CONFIG_VIDEOSDK_TOKEN;
 
 void app_main(void)
@@ -31,7 +31,14 @@ void app_main(void)
   ESP_LOGI(TAG, "[APP] Free memory: %d bytes", esp_get_free_heap_size());
   ESP_LOGI(TAG, "[APP] IDF version: %s", esp_get_idf_version());
 
-  esp_log_level_set("*", ESP_LOG_INFO);
+  // Log verbosity, chosen in menuconfig -> "VideoSDK Logging". Only the SDK's own
+  // tags move; ESP-IDF / registry components keep their levels. Call before
+  // init() so it covers the join.
+#if CONFIG_VIDEOSDK_LOG_MODE_DEBUG
+  videosdk_set_log_mode(VIDEOSDK_LOG_DEBUG);
+#else
+  videosdk_set_log_mode(VIDEOSDK_LOG_NORMAL);
+#endif
 
   ESP_ERROR_CHECK(nvs_flash_init());
   ESP_ERROR_CHECK(esp_netif_init());
@@ -51,12 +58,13 @@ void app_main(void)
     return;
   }
 
-  // Video-only session: VIDEO_CODEC_JPEG. audioCodec is still declared (unused
-  // here) since no audio direction is started.
+  // Video only. audioCodec is still set, it just goes unused here because no
+  // audio direction is started.
   init_config_t init_cfg = {
       .meetingID = CONFIG_VIDEOSDK_MEETING_ID,
       .token = token,
-      .displayName = "ESP32-Video",
+      .displayName = "ESP32S3-Video", // user configuraable for display in the meeting
+      .participantId = deviceid,      
       .audioCodec = AUDIO_CODEC_PCMA,
       .videoCodec = VIDEO_CODEC_JPEG,
   };
@@ -68,12 +76,9 @@ void app_main(void)
     return;
   }
 
-  // Publish the camera into the meeting, and render remote video.
-  // startPublishVideo works on both boards; startSubscribeVideo drives the
-  // ST7789 LCD and is Korvo-2 only -- on the XIAO (no display) it returns
-  // DEVICE_NOT_SUPPORTED, which is fine.
-
-  result_t result_publish = startPublishVideo();  // camera JPEG -> data channel
+  // Both boards can publish. startSubscribeVideo needs the LCD, so on the XIAO
+  // it comes back with DEVICE_NOT_SUPPORTED. That's expected.
+  result_t result_publish = startPublishVideo();
   printf("Result:%d\n", result_publish);
   result_t result_subscribe = startSubscribeVideo();
   printf("Result:%d\n", result_subscribe);

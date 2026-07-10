@@ -45,3 +45,22 @@ config VIDEOSDK_MEETING_ID
         from your VideoSDK dashboard or the create_meeting() API.
 
 endmenu
+
+menu "VideoSDK Logging"
+
+choice VIDEOSDK_LOG_MODE
+    prompt "Log verbosity"
+    default VIDEOSDK_LOG_MODE_NORMAL
+    help
+        How much the SDK prints. NORMAL shows the session lifecycle plus
+        warnings and errors; DEBUG adds the periodic heartbeats and
+        diagnostics. Read this in your app and pass it to
+        videosdk_set_log_mode() before init() (see the README).
+
+config VIDEOSDK_LOG_MODE_NORMAL
+    bool "Normal (lifecycle, warnings, errors)"
+config VIDEOSDK_LOG_MODE_DEBUG
+    bool "Debug (adds heartbeats and diagnostics)"
+endchoice
+
+endmenu
