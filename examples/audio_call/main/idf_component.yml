@@ -1,0 +1,10 @@
+## IDF Component Manager Manifest File
+dependencies:
+  videosdk/iot-sdk: "^0.3.0"
+  idf:
+    version: ">=5.4.0"
+  mdns: "*"
+  # Wi-Fi/network helper (example_connect). Bundled with ESP-IDF, resolved from
+  # $IDF_PATH -- not a registry component.
+  protocol_examples_common:
+    path: ${IDF_PATH}/examples/common_components/protocol_examples_common
