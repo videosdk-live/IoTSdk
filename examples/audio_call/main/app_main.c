@@ -62,8 +62,8 @@ void app_main(void)
   init_config_t init_cfg = {
       .meetingID = CONFIG_VIDEOSDK_MEETING_ID,
       .token = token,
-      .displayName = "ESP32S3-Audio", // user configuraable for display in the meeting
-      .participantId = deviceid,      
+      .displayName = "ESP32S3-Audio", // any name you like; shown in the meeting
+      .participantId = deviceid,      // this device's id
       .audioCodec = AUDIO_CODEC_PCMA,
       .videoCodec = VIDEO_CODEC_NONE,
   };

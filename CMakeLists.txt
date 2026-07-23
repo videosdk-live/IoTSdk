@@ -1,7 +1,7 @@
 idf_component_register(
     INCLUDE_DIRS "include"
     REQUIRES
-        # Mirrors REQUIRES from the source component
+        # Components the prebuilt library links against.
         mbedtls
         json
         esp_netif
@@ -13,13 +13,13 @@ idf_component_register(
         esp_lcd
         esp-tls
         nvs_flash
-        # IDF drivers the prebuilt .a calls into directly
+        # ESP-IDF drivers it uses
         driver
         esp_driver_gpio
         esp_driver_i2c
         esp_driver_i2s
         sdmmc
-        # Registry components used by the prebuilt .a
+        # Registry components it uses
         espressif__mdns
         espressif__esp_audio_codec
         espressif__esp_codec_dev
@@ -47,12 +47,9 @@ else()
     message(WARNING "Board not detected, defaulting to ESP32-S3-XIAO configuration")
 endif()
 
-# Register the prebuilt static library as an IMPORTED target with explicit
-# transitive REQUIRES so CMake places its dependency archives AFTER the
-# prebuilt on the linker command line. Without this, `ld` (single-pass over
-# archives) sees undefined references to esp_capture_*, esp_audio_*,
-# esp_codec_dev_*, esp_ptr_executable (esp_hw_support), etc. when this component
-# is loaded after its providers (which is namespace-order dependent).
+# Link the prebuilt library. Repeating the same REQUIRES here is what makes it
+# link cleanly (no undefined-reference errors), so keep this list in sync with
+# the one above.
 add_prebuilt_library(${prebuilt_lib_name} "${prebuilt_lib_path}"
     REQUIRES
         mbedtls

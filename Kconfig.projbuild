@@ -19,10 +19,9 @@ config SPEAKER_VOLUME
     default 100
     depends on ESP32_S3_KORVO_2_V3_0_BOARD
     help
-        Initial playback volume for the ES8311 speaker, in percent.
-        Only boards with a speaker (Korvo-2) use this. It can be
-        overridden at runtime by calling setSpeakerVolume() from
-        the application (e.g. app_main.c).
+        Starting playback volume, in percent. Only boards with a speaker
+        (Korvo-2) use this. You can change it at runtime by calling
+        setSpeakerVolume() from your app.
 
 endmenu
 

@@ -20,12 +20,11 @@ All notable changes to the `videosdk/iot-sdk` component.
 
   Leave `participantId` as `""` or `NULL` and you still get a random id, as before.
 - Breaking: `init_config_t` has a new `participantId` field. Rebuild your application against the new header.
-- Feature: Send and receive messages during a call. Open the channel with `startMessageChannel()`, send text or binary with `sendMessage()` (up to 60000 bytes per message), and close it with `stopMessageChannel()`. Register `setDataMessageHandler()` to receive what other participants send.
+- Feature: Send and receive messages during a call. Open the channel with `startMessageChannel()`, send text or binary with `sendMessage()` (up to 24000 bytes per message), and close it with `stopMessageChannel()`. Register `setDataMessageHandler()` to receive what other participants send.
 - Feature: `setConnectionStateHandler()` reports when the connection comes up or drops, so your application can rejoin after a disconnect.
 - Feature: Audio can be sent as PCMU or Opus in addition to PCMA. Pick one with `init_config_t.audioCodec`.
 - Update: Two new result codes. `DATA_CHANNEL_NOT_STARTED` (3025) means `sendMessage()` was called before the channel was opened, and `DATA_CHANNEL_QUEUE_FULL` (3026) means messages are being queued faster than they can be sent.
 - Feature: Pick the log verbosity at runtime with `videosdk_set_log_mode()`. `VIDEOSDK_LOG_NORMAL` keeps the lifecycle, warning and error lines; `VIDEOSDK_LOG_DEBUG` adds the periodic heartbeats and diagnostics. Call it before `init()`.
-- Change: `sendMessage()` now accepts up to 24000 bytes per message, down from 60000.
 - Fix: Building a bundled example no longer shows the board and VideoSDK menus twice in `menuconfig`.
 
 ## v0.2.2

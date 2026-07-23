@@ -4,9 +4,7 @@ idf_component_register(
     REQUIRES mbedtls json esp_netif fatfs vfs esp_common esp_timer esp_lcd nvs_flash
 )
 
-# Fix for libsrtp pointer type mismatch on ESP32/Xtensa for esp-idf 5.4.
-# On ESP32, uint32_t is 'long unsigned int' but srtp.c uses 'unsigned int'.
-# Both are 4 bytes but the compiler treats them as incompatible pointer types.
+# libsrtp needs this flag to build cleanly with the ESP32-S3 toolchain.
 idf_component_get_property(srtp_lib sepfy__srtp COMPONENT_LIB)
 target_compile_options(${srtp_lib} PRIVATE -Wno-incompatible-pointer-types)
 
