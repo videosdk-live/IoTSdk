@@ -14,7 +14,7 @@ On the XIAO (no speaker) `startSubscribeAudio()` returns `DEVICE_NOT_SUPPORTED`.
 ## Create the project
 
 ```bash
-idf.py create-project-from-example "videosdk/iot-sdk=0.3.0:audio_call"
+idf.py create-project-from-example "videosdk/iot-sdk=0.3.1:audio_call"
 ```
 
 (This example pulls the published component pinned in `main/idf_component.yml`:

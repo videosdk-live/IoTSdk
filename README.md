@@ -49,7 +49,7 @@ Add it to your project's `main/idf_component.yml`:
 
 ```yaml
 dependencies:
-  videosdk/iot-sdk: "*"      # or pin a version, e.g. "0.3.0"
+  videosdk/iot-sdk: "*"      # or pin a version, e.g. "0.3.1"
   idf:
     version: ">=5.4.0"
 
@@ -64,7 +64,7 @@ Or add it from the terminal:
 ```bash
 cd <your project path>
 
-idf.py add-dependency "videosdk/iot-sdk==0.3.0"   # pin a version (reproducible builds)
+idf.py add-dependency "videosdk/iot-sdk==0.3.1"   # pin a version (reproducible builds)
 idf.py add-dependency "videosdk/iot-sdk*"          # or always pull the latest
 ```
 ### 3. Configure (menuconfig)

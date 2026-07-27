@@ -14,7 +14,7 @@ On the XIAO (no display) `startSubscribeVideo()` returns `DEVICE_NOT_SUPPORTED`.
 ## Create the project
 
 ```bash
-idf.py create-project-from-example "videosdk/iot-sdk=0.3.0:video_call"
+idf.py create-project-from-example "videosdk/iot-sdk=0.3.1:video_call"
 ```
 
 (This example pulls the published component pinned in `main/idf_component.yml`:
