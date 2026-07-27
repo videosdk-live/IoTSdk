@@ -1,4 +1,4 @@
-version: "0.3.0"
+version: "0.3.1"
 description: "IoTSdk is a lightweight ESP-IDF component that enables ESP32-based IoT devices to participate in real-time meetings through the VideoSDK platform. It provides seamless integration for joining meetings and publishing/subscribing to audio and video."
 url: "https://github.com/videosdk-live/IoTSdk"
 repository: "https://github.com/videosdk-live/IoTSdk.git"

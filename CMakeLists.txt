@@ -18,6 +18,7 @@ idf_component_register(
         esp_driver_gpio
         esp_driver_i2c
         esp_driver_i2s
+        esp_driver_spi
         sdmmc
         # Registry components it uses
         espressif__mdns
@@ -67,6 +68,7 @@ add_prebuilt_library(${prebuilt_lib_name} "${prebuilt_lib_path}"
         esp_driver_gpio
         esp_driver_i2c
         esp_driver_i2s
+        esp_driver_spi
         sdmmc
         espressif__mdns
         espressif__esp_audio_codec
