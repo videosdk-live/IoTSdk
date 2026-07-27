@@ -18,7 +18,7 @@ idf.py create-project-from-example "videosdk/iot-sdk=0.3.1:audio_call"
 ```
 
 (This example pulls the published component pinned in `main/idf_component.yml`:
-`videosdk/iot-sdk: "^0.3.0"`.)
+`videosdk/iot-sdk: "^0.3.1"`.)
 
 ## Configure
 
