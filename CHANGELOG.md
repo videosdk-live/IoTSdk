@@ -2,6 +2,21 @@
 
 All notable changes to the `videosdk/iot-sdk` component.
 
+## v0.3.2
+
+**Release Date**: 31st Jul 2026
+
+- Docs & reliability: Reorganized and refreshed the guides (boards-as-rows tables with hardware links, clearer prerequisites, up-to-date version pins), plus more detailed connection error reporting and steadier data-channel handling in the refreshed prebuilt libraries.
+
+## v0.3.1
+
+**Release Date**: 27th Jul 2026
+
+- Breaking: The separate stop-audio calls were removed. Teardown is handled for you now — call `leave()` to stop every direction. (The old `stopPublishAudio` / `stopSubscribeAudio` are gone.)
+- Breaking: The `DUPLICATE_ID` (3024) result code was removed. The remaining codes are unchanged.
+- Improvement: More reliable video receive on the Korvo-2, with smoother playback on the display.
+
+
 ## v0.3.0
 
 **Release Date**: 11th Jul 2026

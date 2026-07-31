@@ -16,21 +16,19 @@ Audio is sent as PCMA, PCMU, or Opus. Video is sent as JPEG.
 
 ## Supported boards
 
-| Feature | XIAO ESP32-S3 (Sense) | ESP32-S3-Korvo-2 v3.0 |
-|---------|:---:|:---:|
-| Send audio | ✅ | ✅ |
-| Receive audio | ❌ | ✅ |
-| Send video | ✅ | ✅ |
-| Receive video | ❌ | ✅ |
-| Send & receive messages | ✅ | ✅ |
+| Board | Send audio | Receive audio | Send video | Receive video | Send & receive messages |
+|-------|:---:|:---:|:---:|:---:|:---:|
+| [XIAO ESP32-S3 (Sense)](https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/) | ✅ | ❌ | ✅ | ❌ | ✅ |
+| [ESP32-S3-Korvo-2 v3.0](https://docs.espressif.com/projects/esp-adf/en/latest/design-guide/dev-boards/user-guide-esp32-s3-korvo-2.html) | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 Both boards can send. Only the Korvo-2 can receive, since the XIAO has no speaker and no screen; there, `startSubscribeAudio()` and `startSubscribeVideo()` return `DEVICE_NOT_SUPPORTED`. The board is picked at build time (see [Configure](#3-configure-menuconfig)).
 
 ## Prerequisites
 
-- **ESP-IDF 5.4+** 
-- A valid [Video SDK Account](https://app.videosdk.live/)
-- Python >= 3.11
+- A supported **ESP32-S3** board: **[Seeed XIAO ESP32-S3 (Sense)](https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/)** or **[ESP32-S3-Korvo-2 v3.0](https://docs.espressif.com/projects/esp-adf/en/latest/design-guide/dev-boards/user-guide-esp32-s3-korvo-2.html)**
+- ESP-IDF 5.4.2, 5.4.3, or 5.4.4
+- A [VideoSDK account](https://app.videosdk.live/) and an auth token
+- Python 3.11 or newer (required by ESP-IDF)
 
 ## Use the IoT SDK component
 
@@ -45,80 +43,43 @@ source ~/esp/esp-idf/export.sh
 
 ### 2. Add the IoT SDK component
 
-In your project's `main/idf_component.yml`, declare the component:
+Add it to your project's `main/idf_component.yml`:
 
 ```yaml
 dependencies:
+  videosdk/iot-sdk: "^0.3.2"   # 0.3.2 or newer, below 0.4.0
   idf:
-    version: '>=5.4.0'
-  mdns: '*'
+    version: ">=5.4.2,<=5.4.4"
+
+  # Wi-Fi helper used by the sample code below. Skip it if your app
+  # already connects to Wi-Fi its own way.
   protocol_examples_common:
     path: ${IDF_PATH}/examples/common_components/protocol_examples_common
-  videosdk/iot-sdk:
-    version: '*'
-  # other components
 ```
 
-Or add it from the terminal. You can pin a specific version, or use `*` to always pull the latest:
+Or add it from the terminal:
 
 ```bash
 cd <your project path>
 
-# Pin an exact version (recommended for reproducible builds)
-idf.py add-dependency "videosdk/iot-sdk==0.3.0"
-
-# Or always use the latest published version
-idf.py add-dependency "videosdk/iot-sdk*"
+idf.py add-dependency "videosdk/iot-sdk==0.3.2"    # use this to pin exact version
+idf.py add-dependency "videosdk/iot-sdk"   # use this to pull the latest version
 ```
 ### 3. Configure (menuconfig)
 
-Set your board target, Wi-Fi, and VideoSDK credentials:
-
-```
-1. <!-- Run this command to set your board as the target -->
+```bash
 idf.py set-target esp32s3
-
-2. <!-- Run this command to do menuconfig -->
-
 idf.py menuconfig
-
-         a. Inside Example Connection Configuration:
-                |
-                |———> WIFI SSID          <!-- replace it with your WiFi name -->
-                |———> WIFI Password      <!-- replace it with your WiFi password -->
-            And click S to save and again enter
-
-         b. Inside VideoSDK Configuration:
-                |
-                |———> Auth token (JWT)    <!-- paste your VideoSDK token -->
-                |———> Meeting / room ID   <!-- the meeting you want to join -->
-            And click S to save and again enter
-
-         c. Inside the Partition table:
-                |
-                |———> Partition table (custom partition table CSV)
-                      |———> Enable Custom partition table CSV
-
-         d. Adjust the flash size inside Serial flasher config
-            (the examples ship an 8 MB config; the 4 MB factory app needs it)
-                | ——> flash size: 8MB
-            And click S to save and again enter
-
-         e. Inside SET Microcontroller:
-                        |——> Audio hardware board (example: ESP32-S3-Korvo-2)
-                            |——> Select your board name
-                                    |———> ESP32-S3-Korvo-2
-                                    |———> ESP32-S3-XIAO   (default)
-                        |——> Speaker output volume (0-100)   [Korvo-2 only]
-
-         f. Inside VideoSDK Logging:
-                |
-                |———> Log verbosity   <!-- Normal (default) or Debug -->
-
-Then press "S" to save and press "Enter" to confirm, then "Esc" or "q" to exit menuconfig.
-
 ```
 
+Then set the following, and press `S` to save and `Q` to exit:
+
+- **SET Microcontroller → Audio hardware board** — pick `ESP32-S3-Korvo-2` or `ESP32-S3-XIAO` (default). On the Korvo-2 you can also set the speaker volume.
+- **VideoSDK Configuration** — paste your Auth token (JWT) and the Meeting / room ID.
+- **Example Connection Configuration** — your Wi-Fi SSID and password.
+- **Partition Table** — choose "Custom partition table CSV".
+- **Serial flasher config → Flash size** — 8 MB (the 4 MB app doesn't fit in less).
+- **VideoSDK Logging** — Normal (default) or Debug.
 
 ### 4. Build & flash
 
@@ -147,7 +108,7 @@ void app_main(void)
     init_config_t cfg = {
         .meetingID     = CONFIG_VIDEOSDK_MEETING_ID,
         .token         = CONFIG_VIDEOSDK_TOKEN,
-        .displayName   = "ESP32S3-Device",  // user configurable
+        .displayName   = "ESP32S3-Device", // any name you like; shown in the meeting
         .participantId = "",               // "" gets you a random id
         .audioCodec    = AUDIO_CODEC_PCMA, // or AUDIO_CODEC_PCMU / AUDIO_CODEC_OPUS
         .videoCodec    = VIDEO_CODEC_JPEG, // or VIDEO_CODEC_NONE for no video
@@ -188,7 +149,9 @@ Text and binary messages travel alongside the media streams. Open the channel wi
 ```c
 #include "videosdk.h"
 
-// Runs on an SDK task. Don't block here, and copy anything you want to keep.
+
+// Runs on an SDK task. Don't block here, and copy anything you want to keep --
+// the buffer is only valid for the length of this call.
 static void on_data_message(const uint8_t *data, size_t len, int is_binary, uint16_t sid)
 {
     if (is_binary) {
@@ -208,20 +171,30 @@ static void on_connection_state(bool connected, void *user)
 
 void messaging_example(void)
 {
-    // Register handlers after init() but before the start* calls.
+    // Call this after init() has already run (see the Usage section above),
+    // and before you start any audio/video direction.
+
+    // 1. Register the handlers first, so you don't miss an early message or an
+    //    early disconnect. Both are optional: skip setDataMessageHandler() if
+    //    you only send, and setConnectionStateHandler() if you don't track it.
     setDataMessageHandler(on_data_message);
     setConnectionStateHandler(on_connection_state, NULL);
 
+    // 2. Open the channel once, before any sendMessage(). Until this succeeds,
+    //    sendMessage() returns DATA_CHANNEL_NOT_STARTED.
     if (startMessageChannel() != RESULT_OK) {
         return;
     }
 
+    // 3. Send as often as you like while the channel is open.
     const char *text = "hello from esp32";
     sendMessage((const uint8_t *)text, strlen(text), /* is_binary */ 0);
 
     const uint8_t blob[4] = {0xDE, 0xAD, 0xBE, 0xEF};
     sendMessage(blob, sizeof(blob), /* is_binary */ 1);
 
+    // 4. Close the channel when you're done sending. leave() also closes it,
+    //    so you only need this to stop messaging while staying in the meeting.
     stopMessageChannel();
 }
 ```
@@ -254,8 +227,6 @@ All declarations live in [`include/videosdk.h`](include/videosdk.h).
 | `result_t startPublishVideo(void)` | Capture the camera and send it to the meeting. |
 | `result_t startSubscribeAudio(void)` | Receive remote audio and play it on the speaker. Korvo-2 only. |
 | `result_t startSubscribeVideo(void)` | Receive remote video and show it on the display. Korvo-2 only. |
-| `result_t stopPublishAudio()` | Stop publishing audio. |
-| `result_t stopSubscribeAudio()` | Stop subscribing to audio. |
 | `void setSpeakerVolume(int volume)` | Set playback volume, 0 to 100 (out-of-range values are clamped). Korvo-2 only. |
 | `result_t startMessageChannel(void)` | Open the message channel. Needed before `sendMessage()`. |
 | `result_t sendMessage(const uint8_t *data, size_t len, int is_binary)` | Send a text or binary message. `len` is capped at 24000 bytes. |
@@ -268,7 +239,7 @@ Directions are independent, so start them in any combination and any order. Call
 
 ### Result codes
 
-`RESULT_OK` (0) means success. Errors fall in the `3001` to `3026` range, for example `DEVICE_NOT_SUPPORTED`, `AUDIO_CODEC_INIT_FAILED`, `DTLS_HANDSHAKE_FAILED`, `INIT_NOT_CALLED`, `DUPLICATE_ID`, `DATA_CHANNEL_NOT_STARTED` and `DATA_CHANNEL_QUEUE_FULL`. The header lists them all.
+`RESULT_OK` (0) means success. Errors fall in the `3001` to `3026` range, for example `DEVICE_NOT_SUPPORTED`, `AUDIO_CODEC_INIT_FAILED`, `DTLS_HANDSHAKE_FAILED`, `INIT_NOT_CALLED`, `DATA_CHANNEL_NOT_STARTED` and `DATA_CHANNEL_QUEUE_FULL`. The header lists them all.
 
 
 ## Documentation

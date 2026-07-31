@@ -81,7 +81,6 @@ typedef enum {
   DTLS_HANDSHAKE_FAILED = 3021,              // the encrypted media handshake failed
   LEAVE_FAILED = 3022,                       // leave() failed
   INIT_NOT_CALLED = 3023,                    // call init() first
-  DUPLICATE_ID = 3024,                       // that participant id is already in use
   DATA_CHANNEL_NOT_STARTED = 3025,           // call startMessageChannel() before sendMessage()
   DATA_CHANNEL_QUEUE_FULL = 3026,            // sending faster than messages can go out; retry shortly
 } result_t;
@@ -111,10 +110,6 @@ result_t startPublishVideo(void);
 result_t startSubscribeAudio(void);
 // Receive remote video and show it on the display. Korvo-2 only.
 result_t startSubscribeVideo(void);
-// Stop sending the microphone.
-result_t stopPublishAudio();
-// Stop playing remote audio.
-result_t stopSubscribeAudio();
 
 // Set speaker playback volume, 0-100 (out-of-range values are clamped). Starts
 // at the value picked in menuconfig. Korvo-2 only; the XIAO has no speaker.
