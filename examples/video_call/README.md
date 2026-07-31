@@ -4,21 +4,21 @@ Joins a VideoSDK meeting and streams video only. It sends the on-board camera as
 hardware JPEG, and on the Korvo-2 it also draws the remote video on the LCD. The
 session runs with `videoCodec = VIDEO_CODEC_JPEG`.
 
-| Feature | XIAO ESP32-S3 (Sense) | ESP32-S3-Korvo-2 v3.0 |
-|---------|:---:|:---:|
-| Send video | ✅ | ✅ |
-| Receive video | ❌ | ✅ |
+| Board | Send video | Receive video |
+|-------|:---:|:---:|
+| [XIAO ESP32-S3 (Sense)](https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/) | ✅ | ❌ |
+| [ESP32-S3-Korvo-2 v3.0](https://docs.espressif.com/projects/esp-adf/en/latest/design-guide/dev-boards/user-guide-esp32-s3-korvo-2.html) | ✅ | ✅ |
 
 On the XIAO (no display) `startSubscribeVideo()` returns `DEVICE_NOT_SUPPORTED`.
 
 ## Create the project
 
 ```bash
-idf.py create-project-from-example "videosdk/iot-sdk=0.3.1:video_call"
+idf.py create-project-from-example "videosdk/iot-sdk=0.3.2:video_call"
 ```
 
 (This example pulls the published component pinned in `main/idf_component.yml`:
-`videosdk/iot-sdk: "^0.3.1"`.)
+`videosdk/iot-sdk: "^0.3.2"`.)
 
 ## Configure
 

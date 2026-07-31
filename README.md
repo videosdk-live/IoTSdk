@@ -16,19 +16,17 @@ Audio is sent as PCMA, PCMU, or Opus. Video is sent as JPEG.
 
 ## Supported boards
 
-| Feature | XIAO ESP32-S3 (Sense) | ESP32-S3-Korvo-2 v3.0 |
-|---------|:---:|:---:|
-| Send audio | ✅ | ✅ |
-| Receive audio | ❌ | ✅ |
-| Send video | ✅ | ✅ |
-| Receive video | ❌ | ✅ |
-| Send & receive messages | ✅ | ✅ |
+| Board | Send audio | Receive audio | Send video | Receive video | Send & receive messages |
+|-------|:---:|:---:|:---:|:---:|:---:|
+| [XIAO ESP32-S3 (Sense)](https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/) | ✅ | ❌ | ✅ | ❌ | ✅ |
+| [ESP32-S3-Korvo-2 v3.0](https://docs.espressif.com/projects/esp-adf/en/latest/design-guide/dev-boards/user-guide-esp32-s3-korvo-2.html) | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 Both boards can send. Only the Korvo-2 can receive, since the XIAO has no speaker and no screen; there, `startSubscribeAudio()` and `startSubscribeVideo()` return `DEVICE_NOT_SUPPORTED`. The board is picked at build time (see [Configure](#3-configure-menuconfig)).
 
 ## Prerequisites
 
-- ESP-IDF 5.4 or newer
+- A supported **ESP32-S3** board: **[Seeed XIAO ESP32-S3 (Sense)](https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/)** or **[ESP32-S3-Korvo-2 v3.0](https://docs.espressif.com/projects/esp-adf/en/latest/design-guide/dev-boards/user-guide-esp32-s3-korvo-2.html)**
+- ESP-IDF 5.4.2, 5.4.3, or 5.4.4
 - A [VideoSDK account](https://app.videosdk.live/) and an auth token
 - Python 3.11 or newer (required by ESP-IDF)
 
@@ -49,9 +47,9 @@ Add it to your project's `main/idf_component.yml`:
 
 ```yaml
 dependencies:
-  videosdk/iot-sdk: "^0.3.1"   # 0.3.1 or newer, below 0.4.0
+  videosdk/iot-sdk: "^0.3.2"   # 0.3.2 or newer, below 0.4.0
   idf:
-    version: ">=5.4.0"
+    version: ">=5.4.2,<=5.4.4"
 
   # Wi-Fi helper used by the sample code below. Skip it if your app
   # already connects to Wi-Fi its own way.
@@ -64,8 +62,8 @@ Or add it from the terminal:
 ```bash
 cd <your project path>
 
-idf.py add-dependency "videosdk/iot-sdk^0.3.1"    # 0.3.1 or newer, below 0.4.0
-idf.py add-dependency "videosdk/iot-sdk==0.3.1"   # or pin exactly (reproducible builds)
+idf.py add-dependency "videosdk/iot-sdk==0.3.2"    # use this to pin exact version
+idf.py add-dependency "videosdk/iot-sdk"   # use this to pull the latest version
 ```
 ### 3. Configure (menuconfig)
 
@@ -151,7 +149,9 @@ Text and binary messages travel alongside the media streams. Open the channel wi
 ```c
 #include "videosdk.h"
 
-// Runs on an SDK task. Don't block here, and copy anything you want to keep.
+
+// Runs on an SDK task. Don't block here, and copy anything you want to keep --
+// the buffer is only valid for the length of this call.
 static void on_data_message(const uint8_t *data, size_t len, int is_binary, uint16_t sid)
 {
     if (is_binary) {
@@ -171,20 +171,30 @@ static void on_connection_state(bool connected, void *user)
 
 void messaging_example(void)
 {
-    // Register handlers after init() but before the start* calls.
+    // Call this after init() has already run (see the Usage section above),
+    // and before you start any audio/video direction.
+
+    // 1. Register the handlers first, so you don't miss an early message or an
+    //    early disconnect. Both are optional: skip setDataMessageHandler() if
+    //    you only send, and setConnectionStateHandler() if you don't track it.
     setDataMessageHandler(on_data_message);
     setConnectionStateHandler(on_connection_state, NULL);
 
+    // 2. Open the channel once, before any sendMessage(). Until this succeeds,
+    //    sendMessage() returns DATA_CHANNEL_NOT_STARTED.
     if (startMessageChannel() != RESULT_OK) {
         return;
     }
 
+    // 3. Send as often as you like while the channel is open.
     const char *text = "hello from esp32";
     sendMessage((const uint8_t *)text, strlen(text), /* is_binary */ 0);
 
     const uint8_t blob[4] = {0xDE, 0xAD, 0xBE, 0xEF};
     sendMessage(blob, sizeof(blob), /* is_binary */ 1);
 
+    // 4. Close the channel when you're done sending. leave() also closes it,
+    //    so you only need this to stop messaging while staying in the meeting.
     stopMessageChannel();
 }
 ```

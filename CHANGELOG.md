@@ -2,6 +2,12 @@
 
 All notable changes to the `videosdk/iot-sdk` component.
 
+## v0.3.2
+
+**Release Date**: 31st Jul 2026
+
+- Docs & reliability: Reorganized and refreshed the guides (boards-as-rows tables with hardware links, clearer prerequisites, up-to-date version pins), plus more detailed connection error reporting and steadier data-channel handling in the refreshed prebuilt libraries.
+
 ## v0.3.1
 
 **Release Date**: 27th Jul 2026

@@ -4,21 +4,21 @@ Joins a VideoSDK meeting and streams audio only. It sends the on-board
 microphone, and on the Korvo-2 it also plays the other participants through the
 speaker. The session runs with `videoCodec = VIDEO_CODEC_NONE`.
 
-| Feature | XIAO ESP32-S3 (Sense) | ESP32-S3-Korvo-2 v3.0 |
-|---------|:---:|:---:|
-| Send audio | ✅ | ✅ |
-| Receive audio | ❌ | ✅ |
+| Board | Send audio | Receive audio |
+|-------|:---:|:---:|
+| [XIAO ESP32-S3 (Sense)](https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/) | ✅ | ❌ |
+| [ESP32-S3-Korvo-2 v3.0](https://docs.espressif.com/projects/esp-adf/en/latest/design-guide/dev-boards/user-guide-esp32-s3-korvo-2.html) | ✅ | ✅ |
 
 On the XIAO (no speaker) `startSubscribeAudio()` returns `DEVICE_NOT_SUPPORTED`.
 
 ## Create the project
 
 ```bash
-idf.py create-project-from-example "videosdk/iot-sdk=0.3.1:audio_call"
+idf.py create-project-from-example "videosdk/iot-sdk=0.3.2:audio_call"
 ```
 
 (This example pulls the published component pinned in `main/idf_component.yml`:
-`videosdk/iot-sdk: "^0.3.1"`.)
+`videosdk/iot-sdk: "^0.3.2"`.)
 
 ## Configure
 
