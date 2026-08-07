@@ -20,9 +20,10 @@ extern "C" {
 //
 // The board is chosen at build time (idf.py menuconfig -> "SET Microcontroller").
 // Korvo-2 does every direction. The XIAO has no speaker and no screen, so
-// startSubscribeAudio() and startSubscribeVideo() return DEVICE_NOT_SUPPORTED.
+// startSubscribeAudio(), startSubscribeVideo() and their stop* counterparts all
+// return DEVICE_NOT_SUPPORTED there.
 //
-// create_meeting() hands back a malloc'd room_id that you free(). init() copies
+// create_room() hands back a malloc'd room_id that you free(). init() copies
 // the strings in init_config_t, so you can free your own buffers as soon as it
 // returns. Callbacks run on SDK tasks: don't block, and copy anything you keep.
 
@@ -47,12 +48,14 @@ typedef enum {
 
 // Options passed to init().
 typedef struct {
-  char* meetingID;           // the meeting to join
+  char* roomId;              // the room to join
   char* token;               // your VideoSDK auth token (JWT)
-  char* displayName;         // the name shown for this device in the meeting
+  char* displayName;         // the name shown for this device in the room
   char* participantId;       // this device's id; "" or NULL for a random one
   audio_codec_t audioCodec;  // PCMA / PCMU / Opus
   video_codec_t videoCodec;  // JPEG, or VIDEO_CODEC_NONE for no video
+  // Optional. Leave it NULL to use "api.videosdk.live".
+  char* signalingBaseUrl;
 } init_config_t;
 
 // Return codes. RESULT_OK is success; anything else is a failure.
@@ -63,7 +66,7 @@ typedef enum {
   MEMORY_ALLOC_FAILED = 3003,                // out of memory
   DEVICE_NOT_SUPPORTED = 3004,               // this board can't do that direction (e.g. subscribe on the XIAO)
   NULL_PARAMETER = 3005,                     // a required argument was NULL
-  INIT_BOARD_FAILED = 3006,                  // the audio/video board failed to start up
+  INIT_BOARD_FAILED = 3006,                  // the board's audio, camera or display hardware failed to start
   PEER_INIT_FAILED = 3007,                   // the media/security layer failed to start up
   TASK_ALREADY_STARTED = 3008,               // that direction is already running
   PUBLISH_MUTEX_CREATE_FAILED = 3009,        // could not start publishing (out of resources)
@@ -85,31 +88,47 @@ typedef enum {
   DATA_CHANNEL_QUEUE_FULL = 3026,            // sending faster than messages can go out; retry shortly
 } result_t;
 
-// Returned by create_meeting().
+// Returned by create_room().
 typedef struct {
   result_t code;
-  char* room_id;  // the new meeting id, malloc'd -- free() it when done
-} create_meeting_result_t;
+  char* room_id;  // the new room id, malloc'd -- free() it when done
+} create_room_result_t;
 
 // Set how much the SDK logs. Call once, before init(). Only the SDK's own log
 // tags are touched. DEBUG output shows up only when the library was built with
 // debug-level logging available.
 void videosdk_set_log_mode(videosdk_log_mode_t mode);
 
-// Create a new meeting. On success the meeting id is in room_id (free() it);
+// Create a new room. On success the room id is in room_id (free() it);
 // check code for errors.
-create_meeting_result_t create_meeting(char* token);
+create_room_result_t create_room(char* token);
 // Initialize the SDK. Call once, before anything else here.
 result_t init(init_config_t* cfg);
 
-// Capture the microphone and send it to the meeting.
+// Capture the microphone and send it to the room.
 result_t startPublishAudio(void);
-// Capture the camera and send it to the meeting.
+// Capture the camera and send it to the room.
 result_t startPublishVideo(void);
 // Receive remote audio and play it on the speaker. Korvo-2 only.
 result_t startSubscribeAudio(void);
 // Receive remote video and show it on the display. Korvo-2 only.
 result_t startSubscribeVideo(void);
+
+// Stop one stream without leaving the room. The other streams keep running and
+// the matching start* above brings this one back — no rejoin needed. Use them to
+// drop video to save power, or to mute the microphone, during a call.
+//
+// Safe to call unconditionally: stopping a stream that is not running returns
+// RESULT_OK. They return once the stream is down. INIT_NOT_CALLED if init() has
+// not run yet.
+//
+// These stop media, they do not end the session — leave() is still what you call
+// to leave the room, and it works whatever you have already stopped here.
+result_t stopPublishAudio(void);
+result_t stopPublishVideo(void);
+result_t stopSubscribeAudio(void);
+// Korvo-2 only, like startSubscribeVideo().
+result_t stopSubscribeVideo(void);
 
 // Set speaker playback volume, 0-100 (out-of-range values are clamped). Starts
 // at the value picked in menuconfig. Korvo-2 only; the XIAO has no speaker.
@@ -142,7 +161,7 @@ typedef void (*connection_state_cb_t)(bool connected, void* user);
 // init() and before the start* calls so you don't miss an early drop.
 void setConnectionStateHandler(connection_state_cb_t cb, void* user);
 
-// Leave the meeting. Stops every direction you started.
+// Leave the room. Stops every direction you started.
 result_t leave();
 
 #ifdef __cplusplus

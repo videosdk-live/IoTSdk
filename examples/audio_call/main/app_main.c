@@ -11,6 +11,7 @@
 #include "esp_partition.h"
 #include "esp_system.h"
 #include "freertos/FreeRTOS.h"
+#include "freertos/task.h"  // vTaskDelay, pdMS_TO_TICKS
 #include "mdns.h"
 #include "nvs_flash.h"
 #include "protocol_examples_common.h"
@@ -20,7 +21,7 @@
 static const char *TAG = "IOT-SDK-AUDIO";
 // Set these under "VideoSDK Configuration" in menuconfig. They land in
 // sdkconfig, so a real token never has to sit in source.
-const char *token = CONFIG_VIDEOSDK_TOKEN;
+char *token = CONFIG_VIDEOSDK_TOKEN;
 
 void app_main(void)
 {
@@ -51,21 +52,24 @@ void app_main(void)
     ESP_LOGI(TAG, "Device ID: %s", deviceid);
   }
 
-  if (token[0] == '\0' || CONFIG_VIDEOSDK_MEETING_ID[0] == '\0')
+  if (token[0] == '\0' || CONFIG_VIDEOSDK_ROOM_ID[0] == '\0')
   {
-    ESP_LOGE(TAG, "VideoSDK token/meeting not set. Run 'idf.py menuconfig' -> "
+    ESP_LOGE(TAG, "VideoSDK token/room not set. Run 'idf.py menuconfig' -> "
                   "VideoSDK Configuration.");
     return;
   }
 
   // Audio only, so no video codec and no video start calls.
   init_config_t init_cfg = {
-      .meetingID = CONFIG_VIDEOSDK_MEETING_ID,
+      .roomId = CONFIG_VIDEOSDK_ROOM_ID,
       .token = token,
-      .displayName = "ESP32S3-Audio", // any name you like; shown in the meeting
+      .displayName = "ESP32S3-Audio", // any name you like; shown in the room
       .participantId = deviceid,      // this device's id
       .audioCodec = AUDIO_CODEC_PCMA,
       .videoCodec = VIDEO_CODEC_NONE,
+
+      // Optional. Leave it NULL to use "api.videosdk.live".
+      .signalingBaseUrl = NULL,
   };
 
   result_t init_result = init(&init_cfg);
@@ -83,11 +87,11 @@ void app_main(void)
   printf("Result:%d\n", result_subscribe);
 
   // Keep the session active for a defined duration (adjust as per your application use case)
-  vTaskDelay(pdMS_TO_TICKS(100000));
+  // vTaskDelay(pdMS_TO_TICKS(30000));
 
-  // Leave the meeting
-  result_t result_leave = leave();
-  printf("Result:%d\n", result_leave);
+  // Leave the room
+  // result_t result_leave = leave();
+  // printf("Result:%d\n", result_leave);
 
   while (1)
   {

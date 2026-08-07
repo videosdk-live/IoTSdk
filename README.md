@@ -2,14 +2,14 @@
 
 Official ESP32 SDK of [videosdk.live](https://videosdk.live).
 
-Add live audio and video calling to ESP32-S3 boards. The device joins the same meeting as a phone or a browser. It sends whatever the microphone and camera pick up, and on a board with a speaker and a screen it plays back what the others are sending.
+Add live audio and video calling to ESP32-S3 boards. The device joins the same room as a phone or a browser. It sends whatever the microphone and camera pick up, and on a board with a speaker and a screen it plays back what the others are sending.
 
 ## Features
 
 - Send audio and video from the on-board microphone and camera. Both boards can do this.
 - Receive audio and video. This needs a speaker and a display, so Korvo-2 only.
 - Send and receive text or binary messages during a call, on either board.
-- Create a meeting, join it, and leave it.
+- Create a room, join it, and leave it.
 - Switch the log verbosity between normal and debug at runtime.
 
 Audio is sent as PCMA, PCMU, or Opus. Video is sent as JPEG.
@@ -19,13 +19,13 @@ Audio is sent as PCMA, PCMU, or Opus. Video is sent as JPEG.
 | Board | Send audio | Receive audio | Send video | Receive video | Send & receive messages |
 |-------|:---:|:---:|:---:|:---:|:---:|
 | [XIAO ESP32-S3 (Sense)](https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/) | ✅ | ❌ | ✅ | ❌ | ✅ |
-| [ESP32-S3-Korvo-2 v3.0](https://docs.espressif.com/projects/esp-adf/en/latest/design-guide/dev-boards/user-guide-esp32-s3-korvo-2.html) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| [ESP32-S3-Korvo-2 v3.1](https://docs.espressif.com/projects/esp-adf/en/latest/design-guide/dev-boards/user-guide-esp32-s3-korvo-2.html) | ✅ | ✅ | ✅ | ✅ | ✅ |
 
-Both boards can send. Only the Korvo-2 can receive, since the XIAO has no speaker and no screen; there, `startSubscribeAudio()` and `startSubscribeVideo()` return `DEVICE_NOT_SUPPORTED`. The board is picked at build time (see [Configure](#3-configure-menuconfig)).
+Both boards can send. Only the Korvo-2 can receive, since the XIAO has no speaker and no screen; there, the four subscribe calls — `startSubscribeAudio()`, `startSubscribeVideo()` and their `stop*` counterparts — all return `DEVICE_NOT_SUPPORTED`. The board is picked at build time (see [Configure](#3-configure-menuconfig)).
 
 ## Prerequisites
 
-- A supported **ESP32-S3** board: **[Seeed XIAO ESP32-S3 (Sense)](https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/)** or **[ESP32-S3-Korvo-2 v3.0](https://docs.espressif.com/projects/esp-adf/en/latest/design-guide/dev-boards/user-guide-esp32-s3-korvo-2.html)**
+- A supported **ESP32-S3** board: **[Seeed XIAO ESP32-S3 (Sense)](https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/)** or **[ESP32-S3-Korvo-2 v3.1](https://docs.espressif.com/projects/esp-adf/en/latest/design-guide/dev-boards/user-guide-esp32-s3-korvo-2.html)**
 - ESP-IDF 5.4.2, 5.4.3, or 5.4.4
 - A [VideoSDK account](https://app.videosdk.live/) and an auth token
 - Python 3.11 or newer (required by ESP-IDF)
@@ -47,7 +47,7 @@ Add it to your project's `main/idf_component.yml`:
 
 ```yaml
 dependencies:
-  videosdk/iot-sdk: "^0.3.2"   # 0.3.2 or newer, below 0.4.0
+  videosdk/iot-sdk: "^0.4.0"   # 0.4.0 or newer
   idf:
     version: ">=5.4.2,<=5.4.4"
 
@@ -62,7 +62,7 @@ Or add it from the terminal:
 ```bash
 cd <your project path>
 
-idf.py add-dependency "videosdk/iot-sdk==0.3.2"    # use this to pin exact version
+idf.py add-dependency "videosdk/iot-sdk^0.4.0"    # use this to pin exact version
 idf.py add-dependency "videosdk/iot-sdk"   # use this to pull the latest version
 ```
 ### 3. Configure (menuconfig)
@@ -75,7 +75,7 @@ idf.py menuconfig
 Then set the following, and press `S` to save and `Q` to exit:
 
 - **SET Microcontroller → Audio hardware board** — pick `ESP32-S3-Korvo-2` or `ESP32-S3-XIAO` (default). On the Korvo-2 you can also set the speaker volume.
-- **VideoSDK Configuration** — paste your Auth token (JWT) and the Meeting / room ID.
+- **VideoSDK Configuration** — paste your Auth token (JWT) and the Room ID.
 - **Example Connection Configuration** — your Wi-Fi SSID and password.
 - **Partition Table** — choose "Custom partition table CSV".
 - **Serial flasher config → Flash size** — 8 MB (the 4 MB app doesn't fit in less).
@@ -93,8 +93,11 @@ idf.py -p <PORT> flash monitor
 Include the header and call the API from one task. It is not thread-safe.
 
 ```c
-#include "videosdk.h"
+#include <stdio.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "sdkconfig.h"
+#include "videosdk.h"
 
 void app_main(void)
 {
@@ -106,12 +109,15 @@ void app_main(void)
 #endif
 
     init_config_t cfg = {
-        .meetingID     = CONFIG_VIDEOSDK_MEETING_ID,
+        .roomId        = CONFIG_VIDEOSDK_ROOM_ID,
         .token         = CONFIG_VIDEOSDK_TOKEN,
-        .displayName   = "ESP32S3-Device", // any name you like; shown in the meeting
+        .displayName   = "ESP32S3-Device", // any name you like; shown in the room
         .participantId = "",               // "" gets you a random id
         .audioCodec    = AUDIO_CODEC_PCMA, // or AUDIO_CODEC_PCMU / AUDIO_CODEC_OPUS
         .videoCodec    = VIDEO_CODEC_JPEG, // or VIDEO_CODEC_NONE for no video
+
+        // Optional. Leave it NULL to use "api.videosdk.live".
+        .signalingBaseUrl = NULL,
     };
     if (init(&cfg) != RESULT_OK) {
         return;
@@ -132,23 +138,36 @@ void app_main(void)
     result_t result_subscribe_video = startSubscribeVideo();
     printf("startSubscribeVideo: %d\n", result_subscribe_video);
 
+    // Stay in the room. Call leave() when you want to end the session -- it
+    // shuts every direction down.
     while (1) {
         vTaskDelay(pdMS_TO_TICKS(10));
     }
-
-    // leave() shuts every direction down.
 }
 ```
 
-`init()` copies the strings in `init_config_t`, so you can free your own buffers as soon as it returns.
+### Stopping one stream
+
+Each `start*` has a matching `stop*` that stops just that stream and leaves you in the room. The matching `start*` brings it back — no rejoin.
+
+```c
+startPublishAudio();
+startPublishVideo();
+
+stopPublishVideo();   // audio keeps flowing, still in the room
+startPublishVideo();  // video is back
+```
+
+They are safe to call unconditionally — stopping a stream that is not running returns `RESULT_OK`. Use `leave()` when you want to end the session; it stops everything regardless of what you already stopped.
 
 ### Application messages
 
 Text and binary messages travel alongside the media streams. Open the channel with `startMessageChannel()` before you call `sendMessage()`. To receive, register a handler.
 
 ```c
+#include <stdio.h>
+#include <string.h>
 #include "videosdk.h"
-
 
 // Runs on an SDK task. Don't block here, and copy anything you want to keep --
 // the buffer is only valid for the length of this call.
@@ -194,7 +213,7 @@ void messaging_example(void)
     sendMessage(blob, sizeof(blob), /* is_binary */ 1);
 
     // 4. Close the channel when you're done sending. leave() also closes it,
-    //    so you only need this to stop messaging while staying in the meeting.
+    //    so you only need this to stop messaging while staying in the room.
     stopMessageChannel();
 }
 ```
@@ -209,31 +228,36 @@ All declarations live in [`include/videosdk.h`](include/videosdk.h).
 
 | Field | Type | Notes |
 |-------|------|-------|
-| `meetingID` | `char *` | The meeting ID to join.|
+| `roomId` | `char *` | The room ID to join.|
 | `token` | `char *` | VideoSDK JWT auth token. |
-| `displayName` | `char *` | Name shown in the meeting. |
+| `displayName` | `char *` | Name shown in the room. |
 | `participantId` | `char *` | This device's peer id. `""` or `NULL` gives you a random 8-char id. |
 | `audioCodec` | `audio_codec_t` | `AUDIO_CODEC_PCMA`, `AUDIO_CODEC_PCMU`, or `AUDIO_CODEC_OPUS`. |
 | `videoCodec` | `video_codec_t` | `VIDEO_CODEC_NONE` (no video) or `VIDEO_CODEC_JPEG`. |
+| `signalingBaseUrl` | `char *` | Optional. The VideoSDK API host, e.g. `"api.videosdk.live"`. Leave it `NULL` for the default. Host only — no port, no path. |
 
 ### Functions
 
 | Function | Description |
 |----------|-------------|
-| `create_meeting_result_t create_meeting(char *token)` | Create a meeting. Returns a malloc'd `room_id` that the caller frees. |
+| `create_room_result_t create_room(char *token)` | Create a room. Returns a malloc'd `room_id` that the caller frees. |
 | `void videosdk_set_log_mode(videosdk_log_mode_t mode)` | Set log verbosity (`VIDEOSDK_LOG_NORMAL` or `VIDEOSDK_LOG_DEBUG`). Call before `init()`. |
 | `result_t init(init_config_t *cfg)` | Initialize the session and the board. Call once, before anything else. |
-| `result_t startPublishAudio(void)` | Capture the microphone and send it to the meeting. |
-| `result_t startPublishVideo(void)` | Capture the camera and send it to the meeting. |
+| `result_t startPublishAudio(void)` | Capture the microphone and send it to the room. |
+| `result_t startPublishVideo(void)` | Capture the camera and send it to the room. |
 | `result_t startSubscribeAudio(void)` | Receive remote audio and play it on the speaker. Korvo-2 only. |
 | `result_t startSubscribeVideo(void)` | Receive remote video and show it on the display. Korvo-2 only. |
+| `result_t stopPublishAudio(void)` | Stop sending the microphone. Stays in the room. |
+| `result_t stopPublishVideo(void)` | Stop sending the camera and release it. Stays in the room. |
+| `result_t stopSubscribeAudio(void)` | Stop receiving audio. Korvo-2 only. |
+| `result_t stopSubscribeVideo(void)` | Stop receiving video. Korvo-2 only. |
 | `void setSpeakerVolume(int volume)` | Set playback volume, 0 to 100 (out-of-range values are clamped). Korvo-2 only. |
 | `result_t startMessageChannel(void)` | Open the message channel. Needed before `sendMessage()`. |
 | `result_t sendMessage(const uint8_t *data, size_t len, int is_binary)` | Send a text or binary message. `len` is capped at 24000 bytes. |
 | `result_t stopMessageChannel(void)` | Close the message channel. |
 | `void setDataMessageHandler(data_message_cb_t cb)` | Set the incoming-message handler. `NULL` clears it. |
 | `void setConnectionStateHandler(connection_state_cb_t cb, void *user)` | Set the connection-state handler. `NULL` clears it. |
-| `result_t leave()` | Leave the meeting and stop every direction that was started. |
+| `result_t leave()` | Leave the room and stop every direction that was started. |
 
 Directions are independent, so start them in any combination and any order. Callbacks run on SDK tasks, so don't block in them, and copy any buffer you want to keep.
 
