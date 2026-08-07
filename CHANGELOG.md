@@ -2,13 +2,28 @@
 
 All notable changes to the `videosdk/iot-sdk` component.
 
-## v0.3.2
+## v0.4.0
+
+**Release Date**: 7th Aug 2026
+
+The SDK now says "room" throughout, matching the VideoSDK signaling API.
+
+- Breaking: `init_config_t.meetingID` is now `roomId`. Same value, new name.
+- Breaking: `create_meeting()` is now `create_room()`, returning `create_room_result_t`. Arguments and the returned `room_id` are unchanged.
+- Breaking: the menuconfig option `VIDEOSDK_MEETING_ID` is now `VIDEOSDK_ROOM_ID` (`CONFIG_VIDEOSDK_ROOM_ID` in your code). Re-enter the ID in `idf.py menuconfig` after upgrading.
+- New: `stopPublishAudio()`, `stopPublishVideo()`, `stopSubscribeAudio()` and `stopSubscribeVideo()` stop one stream without leaving the room; the matching `start*` brings it back. Safe to call when the stream is not running. `leave()` is unchanged.
+- New: `init_config_t.signalingBaseUrl` points the SDK at a different VideoSDK API host. Leave it `NULL` for the default.
+- Improvement: the **Debug** log mode now includes video-receive diagnostics.
+
+---
+
+## v0.3.2 (deprecated)
 
 **Release Date**: 31st Jul 2026
 
 - Docs & reliability: Reorganized and refreshed the guides (boards-as-rows tables with hardware links, clearer prerequisites, up-to-date version pins), plus more detailed connection error reporting and steadier data-channel handling in the refreshed prebuilt libraries.
 
-## v0.3.1
+## v0.3.1 (deprecated)
 
 **Release Date**: 27th Jul 2026
 
@@ -17,7 +32,7 @@ All notable changes to the `videosdk/iot-sdk` component.
 - Improvement: More reliable video receive on the Korvo-2, with smoother playback on the display.
 
 
-## v0.3.0
+## v0.3.0 (deprecated)
 
 **Release Date**: 11th Jul 2026
 
@@ -42,7 +57,7 @@ All notable changes to the `videosdk/iot-sdk` component.
 - Feature: Pick the log verbosity at runtime with `videosdk_set_log_mode()`. `VIDEOSDK_LOG_NORMAL` keeps the lifecycle, warning and error lines; `VIDEOSDK_LOG_DEBUG` adds the periodic heartbeats and diagnostics. Call it before `init()`.
 - Fix: Building a bundled example no longer shows the board and VideoSDK menus twice in `menuconfig`.
 
-## v0.2.2
+## v0.2.2 (deprecated)
 
 **Release Date**: 1st Jul 2026
 
@@ -53,26 +68,26 @@ All notable changes to the `videosdk/iot-sdk` component.
 - Update: The component now pulls in everything the video path needs, so you do not have to add those dependencies yourself. The minimum ESP-IDF version is now 5.4.
 - Fix: More reliable receive path, and fewer leaks over long sessions.
 
-## v0.0.4
+## v0.0.4 (deprecated)
 
 **Release Date**: 27th Apr 2026
 
 - Fix: Resolved undefined-reference errors that could appear when linking the component into an application.
 
-## v0.0.3
+## v0.0.3 (deprecated)
 
 **Release Date**: 27th Apr 2026
 
 - Fix: The component now declares its own runtime dependencies, so adding it to a project no longer produces undefined-reference errors at link time.
 - Update: The manifest now carries the repository, issue tracker and documentation links, along with tags and the supported targets.
 
-## v0.0.2
+## v0.0.2 (deprecated)
 
 **Release Date**: 20th Jan 2026
 
 - Update: Refreshed the prebuilt libraries for the ESP32-S3-Korvo-2.
 
-## v0.0.1
+## v0.0.1 (deprecated)
 
 **Release Date**: 23rd Sep 2025
 

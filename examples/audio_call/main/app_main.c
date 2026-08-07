@@ -51,21 +51,24 @@ void app_main(void)
     ESP_LOGI(TAG, "Device ID: %s", deviceid);
   }
 
-  if (token[0] == '\0' || CONFIG_VIDEOSDK_MEETING_ID[0] == '\0')
+  if (token[0] == '\0' || CONFIG_VIDEOSDK_ROOM_ID[0] == '\0')
   {
-    ESP_LOGE(TAG, "VideoSDK token/meeting not set. Run 'idf.py menuconfig' -> "
+    ESP_LOGE(TAG, "VideoSDK token/room not set. Run 'idf.py menuconfig' -> "
                   "VideoSDK Configuration.");
     return;
   }
 
   // Audio only, so no video codec and no video start calls.
   init_config_t init_cfg = {
-      .meetingID = CONFIG_VIDEOSDK_MEETING_ID,
+      .roomId = CONFIG_VIDEOSDK_ROOM_ID,
       .token = token,
-      .displayName = "ESP32S3-Audio", // any name you like; shown in the meeting
+      .displayName = "ESP32S3-Audio", // any name you like; shown in the room
       .participantId = deviceid,      // this device's id
       .audioCodec = AUDIO_CODEC_PCMA,
       .videoCodec = VIDEO_CODEC_NONE,
+
+      // Optional. Leave it NULL to use "api.videosdk.live".
+      .signalingBaseUrl = NULL,
   };
 
   result_t init_result = init(&init_cfg);
@@ -83,9 +86,9 @@ void app_main(void)
   printf("Result:%d\n", result_subscribe);
 
   // Keep the session active for a defined duration (adjust as per your application use case)
-  vTaskDelay(pdMS_TO_TICKS(100000));
+  vTaskDelay(pdMS_TO_TICKS(30000));
 
-  // Leave the meeting
+  // Leave the room
   result_t result_leave = leave();
   printf("Result:%d\n", result_leave);
 

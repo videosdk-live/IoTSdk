@@ -32,16 +32,16 @@ config VIDEOSDK_TOKEN
     default ""
     help
         Your VideoSDK JWT token from https://app.videosdk.live.
-        Required to join a meeting. Do NOT commit a real token to a
+        Required to join a room. Do NOT commit a real token to a
         public repository -- set it here via 'idf.py menuconfig' (it is
         stored in sdkconfig, not in source).
 
-config VIDEOSDK_MEETING_ID
-    string "Meeting / room ID"
+config VIDEOSDK_ROOM_ID
+    string "Room ID"
     default ""
     help
-        The meeting (room) ID to join, e.g. "abcd-efgh-ijkl". Create one
-        from your VideoSDK dashboard or the create_meeting() API.
+        The room ID to join, e.g. "abcd-efgh-ijkl". Create one
+        from your VideoSDK dashboard or the create_room() API.
 
 endmenu
 
@@ -55,6 +55,8 @@ choice VIDEOSDK_LOG_MODE
         warnings and errors; DEBUG adds the periodic heartbeats and
         diagnostics. Read this in your app and pass it to
         videosdk_set_log_mode() before init() (see the README).
+
+        DEBUG also adds video-receive diagnostics to the log.
 
 config VIDEOSDK_LOG_MODE_NORMAL
     bool "Normal (lifecycle, warnings, errors)"
