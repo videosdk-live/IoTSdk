@@ -19,13 +19,13 @@ Audio is sent as PCMA, PCMU, or Opus. Video is sent as JPEG.
 | Board | Send audio | Receive audio | Send video | Receive video | Send & receive messages |
 |-------|:---:|:---:|:---:|:---:|:---:|
 | [XIAO ESP32-S3 (Sense)](https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/) | ✅ | ❌ | ✅ | ❌ | ✅ |
-| [ESP32-S3-Korvo-2 v3.0](https://docs.espressif.com/projects/esp-adf/en/latest/design-guide/dev-boards/user-guide-esp32-s3-korvo-2.html) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| [ESP32-S3-Korvo-2 v3.1](https://docs.espressif.com/projects/esp-adf/en/latest/design-guide/dev-boards/user-guide-esp32-s3-korvo-2.html) | ✅ | ✅ | ✅ | ✅ | ✅ |
 
-Both boards can send. Only the Korvo-2 can receive, since the XIAO has no speaker and no screen; there, `startSubscribeAudio()` and `startSubscribeVideo()` return `DEVICE_NOT_SUPPORTED`. The board is picked at build time (see [Configure](#3-configure-menuconfig)).
+Both boards can send. Only the Korvo-2 can receive, since the XIAO has no speaker and no screen; there, the four subscribe calls — `startSubscribeAudio()`, `startSubscribeVideo()` and their `stop*` counterparts — all return `DEVICE_NOT_SUPPORTED`. The board is picked at build time (see [Configure](#3-configure-menuconfig)).
 
 ## Prerequisites
 
-- A supported **ESP32-S3** board: **[Seeed XIAO ESP32-S3 (Sense)](https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/)** or **[ESP32-S3-Korvo-2 v3.0](https://docs.espressif.com/projects/esp-adf/en/latest/design-guide/dev-boards/user-guide-esp32-s3-korvo-2.html)**
+- A supported **ESP32-S3** board: **[Seeed XIAO ESP32-S3 (Sense)](https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/)** or **[ESP32-S3-Korvo-2 v3.1](https://docs.espressif.com/projects/esp-adf/en/latest/design-guide/dev-boards/user-guide-esp32-s3-korvo-2.html)**
 - ESP-IDF 5.4.2, 5.4.3, or 5.4.4
 - A [VideoSDK account](https://app.videosdk.live/) and an auth token
 - Python 3.11 or newer (required by ESP-IDF)
@@ -62,7 +62,7 @@ Or add it from the terminal:
 ```bash
 cd <your project path>
 
-idf.py add-dependency "videosdk/iot-sdk==0.4.0"    # use this to pin exact version
+idf.py add-dependency "videosdk/iot-sdk^0.4.0"    # use this to pin exact version
 idf.py add-dependency "videosdk/iot-sdk"   # use this to pull the latest version
 ```
 ### 3. Configure (menuconfig)
@@ -93,8 +93,11 @@ idf.py -p <PORT> flash monitor
 Include the header and call the API from one task. It is not thread-safe.
 
 ```c
-#include "videosdk.h"
+#include <stdio.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "sdkconfig.h"
+#include "videosdk.h"
 
 void app_main(void)
 {
@@ -135,15 +138,13 @@ void app_main(void)
     result_t result_subscribe_video = startSubscribeVideo();
     printf("startSubscribeVideo: %d\n", result_subscribe_video);
 
+    // Stay in the room. Call leave() when you want to end the session -- it
+    // shuts every direction down.
     while (1) {
         vTaskDelay(pdMS_TO_TICKS(10));
     }
-
-    // leave() shuts every direction down.
 }
 ```
-
-`init()` copies the strings in `init_config_t`, so you can free your own buffers as soon as it returns.
 
 ### Stopping one stream
 
@@ -164,8 +165,9 @@ They are safe to call unconditionally — stopping a stream that is not running 
 Text and binary messages travel alongside the media streams. Open the channel with `startMessageChannel()` before you call `sendMessage()`. To receive, register a handler.
 
 ```c
+#include <stdio.h>
+#include <string.h>
 #include "videosdk.h"
-
 
 // Runs on an SDK task. Don't block here, and copy anything you want to keep --
 // the buffer is only valid for the length of this call.
@@ -232,6 +234,7 @@ All declarations live in [`include/videosdk.h`](include/videosdk.h).
 | `participantId` | `char *` | This device's peer id. `""` or `NULL` gives you a random 8-char id. |
 | `audioCodec` | `audio_codec_t` | `AUDIO_CODEC_PCMA`, `AUDIO_CODEC_PCMU`, or `AUDIO_CODEC_OPUS`. |
 | `videoCodec` | `video_codec_t` | `VIDEO_CODEC_NONE` (no video) or `VIDEO_CODEC_JPEG`. |
+| `signalingBaseUrl` | `char *` | Optional. The VideoSDK API host, e.g. `"api.videosdk.live"`. Leave it `NULL` for the default. Host only — no port, no path. |
 
 ### Functions
 

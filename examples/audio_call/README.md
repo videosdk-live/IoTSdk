@@ -7,7 +7,7 @@ speaker. The session runs with `videoCodec = VIDEO_CODEC_NONE`.
 | Board | Send audio | Receive audio |
 |-------|:---:|:---:|
 | [XIAO ESP32-S3 (Sense)](https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/) | ✅ | ❌ |
-| [ESP32-S3-Korvo-2 v3.0](https://docs.espressif.com/projects/esp-adf/en/latest/design-guide/dev-boards/user-guide-esp32-s3-korvo-2.html) | ✅ | ✅ |
+| [ESP32-S3-Korvo-2 v3.1](https://docs.espressif.com/projects/esp-adf/en/latest/design-guide/dev-boards/user-guide-esp32-s3-korvo-2.html) | ✅ | ✅ |
 
 On the XIAO (no speaker) `startSubscribeAudio()` returns `DEVICE_NOT_SUPPORTED`.
 

@@ -20,7 +20,8 @@ extern "C" {
 //
 // The board is chosen at build time (idf.py menuconfig -> "SET Microcontroller").
 // Korvo-2 does every direction. The XIAO has no speaker and no screen, so
-// startSubscribeAudio() and startSubscribeVideo() return DEVICE_NOT_SUPPORTED.
+// startSubscribeAudio(), startSubscribeVideo() and their stop* counterparts all
+// return DEVICE_NOT_SUPPORTED there.
 //
 // create_room() hands back a malloc'd room_id that you free(). init() copies
 // the strings in init_config_t, so you can free your own buffers as soon as it
@@ -65,7 +66,7 @@ typedef enum {
   MEMORY_ALLOC_FAILED = 3003,                // out of memory
   DEVICE_NOT_SUPPORTED = 3004,               // this board can't do that direction (e.g. subscribe on the XIAO)
   NULL_PARAMETER = 3005,                     // a required argument was NULL
-  INIT_BOARD_FAILED = 3006,                  // the audio/video board failed to start up
+  INIT_BOARD_FAILED = 3006,                  // the board's audio, camera or display hardware failed to start
   PEER_INIT_FAILED = 3007,                   // the media/security layer failed to start up
   TASK_ALREADY_STARTED = 3008,               // that direction is already running
   PUBLISH_MUTEX_CREATE_FAILED = 3009,        // could not start publishing (out of resources)

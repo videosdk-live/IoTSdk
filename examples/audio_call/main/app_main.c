@@ -11,6 +11,7 @@
 #include "esp_partition.h"
 #include "esp_system.h"
 #include "freertos/FreeRTOS.h"
+#include "freertos/task.h"  // vTaskDelay, pdMS_TO_TICKS
 #include "mdns.h"
 #include "nvs_flash.h"
 #include "protocol_examples_common.h"
@@ -20,7 +21,7 @@
 static const char *TAG = "IOT-SDK-AUDIO";
 // Set these under "VideoSDK Configuration" in menuconfig. They land in
 // sdkconfig, so a real token never has to sit in source.
-const char *token = CONFIG_VIDEOSDK_TOKEN;
+char *token = CONFIG_VIDEOSDK_TOKEN;
 
 void app_main(void)
 {
@@ -86,11 +87,11 @@ void app_main(void)
   printf("Result:%d\n", result_subscribe);
 
   // Keep the session active for a defined duration (adjust as per your application use case)
-  vTaskDelay(pdMS_TO_TICKS(30000));
+  // vTaskDelay(pdMS_TO_TICKS(30000));
 
   // Leave the room
-  result_t result_leave = leave();
-  printf("Result:%d\n", result_leave);
+  // result_t result_leave = leave();
+  // printf("Result:%d\n", result_leave);
 
   while (1)
   {
